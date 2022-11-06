@@ -105,21 +105,8 @@ def roll_dice(roll_string: str, iterations: int = typer.Argument(1)):
         print(total)
 
 @app.command()
-def quick_roll(name: str, iterations: int = typer.Argument(1)):
-    file = open("./quick_roll.json")
-    data = json.load(file)
-    file.close()
-    if name not in data.keys():
-        print(f"Could not find quick roll entry '{name}'!")
-        return
-    roll(data[name], iterations)
-
-@app.command()
 def list_tables():
-    file = open("./tables.json")
-    data = json.load(file)
-    file.close()
-    for key in data.keys():
+    for key in tables.keys():
         print(key)
 
 @app.command()
