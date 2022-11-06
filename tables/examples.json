@@ -1,0 +1,20 @@
+{
+    "forest_encounter":[
+        "[1d6] goblin(s)",
+        "[1d6] goblin(s)",
+        "[1d4] orc(s)",
+        "[1d4] orc(s)",
+        "a {npc_temperament} woodcutter",
+        "a giant bear",
+        "a griffon",
+        "a pack of [1d4+2] wolves"
+    ],
+    "npc_temperament":[
+        "friendly",
+        "surly",
+        "apathetic",
+        "tired",
+        "angry",
+        "joyful"
+    ]
+}
