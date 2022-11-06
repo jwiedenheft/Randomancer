@@ -2,6 +2,7 @@
 
 
 from operator import indexOf
+import os
 from os import path
 import typer
 import json
@@ -9,11 +10,17 @@ import re
 import random
 
 app = typer.Typer()
+tables = {}
+tables_directory = "tables"
+for filename in os.listdir(tables_directory):
+    f = os.path.join(tables_directory, filename)
+    if os.path.isfile(f) and filename.lower().endswith('.json'):
+        file = open(f)
+        table = json.load(file)
+        file.close()
+        tables.update(table)
 
 def get_table(table_name: str):
-    file = open("./tables.json")
-    tables = json.load(file)
-    file.close()
     if table_name not in tables.keys():
         print(f"Could not find table '{table_name}'!")
         return table_name
@@ -55,6 +62,7 @@ def parse_roll(roll_string: str):
     return ' '.join(words)
 
 def parse_dice_string(roll_string: str):
+    roll_string = roll_string.lower()
     operators = re.findall("[+|-|*]", roll_string)
     if len(operators) > 0:
         operator = operators[0]
