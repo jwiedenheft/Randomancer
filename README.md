@@ -5,8 +5,11 @@ dice-based games like Dungeons and Dragons.
 
 ## How to Use
 ``` ./randomancer.py roll "{table_name}" ```
+
 ``` ./randomancer.py roll "[1d20]" ```
+
 ``` ./randomancer.py roll "{table_name|[1d12+8]}" ```
+
 ``` ./randomancer.py roll "A {table_name} with {another_table} and {third_table}" ```
 
 Tables can be created as .json files in a ./tables/ sub-directory.
