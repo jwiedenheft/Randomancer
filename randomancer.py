@@ -19,63 +19,70 @@ def get_table(table_name: str):
         return table_name
     return (tables[table_name])
 
+def parse_table_element(table_string: str):
+    result = table_string
+    if table_string == "encounter_distance":
+        twoDsix = random.randint(1,6) + random.randint(1,6)
+        result = f"{twoDsix * 20} ft."
+    #print(f"Rolling on table '{table}'...")
+    else:
+        parts = table_string.split("|")
+        table = parts[0]
+        options = get_table(table)
+        if len(parts) > 1:
+            num = int(parse_roll(parts[1]))
+            choice = options[num]
+        else:
+            choice = random.choice(options)
+        result = parse_roll(choice)
+        #print(f"-- Rolled '{result}'.")
+    return result
+
 def parse_roll(roll_string: str):
-    dice_matches = re.finditer('\[(.+?)\]', roll_string)
-    for match in dice_matches:
-        dice_string = match.group(1)
-        result = str(parse_dice_element(dice_string))
-        result = parse_roll(result)
-        roll_string = roll_string.replace(match.group(0), result)
-    
-    table_matches = re.finditer('{(.+?)}', roll_string)
-    for match in table_matches:
-        table = match.group(1)
-        if table == "encounter_distance":
-            twoDsix = random.randint(1,6) + random.randint(1,6)
-            result = f"{twoDsix * 20} ft."
-        #print(f"Rolling on table '{table}'...")
-        else:
-            options = get_table(table)
-            result = random.choice(options)
+    words = roll_string.split(" ")
+    i = 0
+    for word in words:
+        result = word
+        if re.match('\[(.+?)\]', word):
+            dice_string = word[1:-1]
+            result = str(parse_dice_string(dice_string))
             result = parse_roll(result)
-            #print(f"-- Rolled '{result}'.")
-        start = match.start() 
-        end = match.end()
-        roll_string = roll_string.replace(match.group(0), result)
-    return roll_string
+        elif re.match('{(.+?)}', word):
+            dice_string = word[1:-1]
+            result = parse_table_element(dice_string)
+        words[i] = result
+        i += 1
+    return ' '.join(words)
 
-
-def parse_dice_roll(roll_string: str):
-    split_string = roll_string.split("+")
-    if len(split_string) > 2:
-        print("Invalid dice roll string!")
-        return
-    if len(split_string) == 2:
-        add_num = int(split_string[1].strip())
+def parse_dice_string(roll_string: str):
+    operators = re.findall("[+|-|*]", roll_string)
+    if len(operators) > 0:
+        operator = operators[0]
+        parts = roll_string.split(operator)
+        if len(parts) > 2:
+            print("Dice string has more than one operator!")
+            return 0
+        first_num = int(parse_dice_string(parts[0]))
+        second_num = int(parse_dice_string(parts[1]))
+        match operator:
+            case "+":
+                total = first_num + second_num
+            case "-":
+                total = first_num - second_num
+            case "*":
+                total = first_num * second_num
+        return int(total)
+    elif re.search("d",roll_string):
+        dice_split = roll_string.split("d")
+        num_dice = int(dice_split[0])
+        die_max = int(dice_split[1])
+        roll_total = 0
+        for i in range(0, num_dice):
+            die_roll = random.randint(1,die_max)
+            roll_total += die_roll
+        return int(roll_total)
     else:
-        add_num = 0
-    dice = split_string[0].strip()
-    dice_split = dice.split("d")
-    num_dice = int(dice_split[0])
-    die_max = int(dice_split[1])
-    roll_total = add_num
-    for i in range(0, num_dice):
-        die_roll = random.randint(1,die_max)
-        roll_total += die_roll
-    return roll_total
-
-def parse_dice_element(roll_string: str):
-    if "|" in roll_string:
-        split = roll_string.split("|")
-        table_name = split[0]
-        table = get_table(table_name)
-        dice_result = parse_dice_roll(split[1])
-        if dice_result > len(table):
-            return (table[-1])
-        else:
-            return (table[dice_result - 1])
-    else:
-        return (parse_dice_roll(roll_string))
+        return int(roll_string)
 
 @app.command()
 def roll(roll_string: str, iterations: int = typer.Argument(1)):
@@ -86,7 +93,7 @@ def roll(roll_string: str, iterations: int = typer.Argument(1)):
 @app.command()
 def roll_dice(roll_string: str, iterations: int = typer.Argument(1)):
     for i in range(0,iterations):
-        total = parse_dice_roll(roll_string)
+        total = parse_dice_string(roll_string)
         print(total)
 
 @app.command()
@@ -119,8 +126,6 @@ def terminal():
                 list_tables()
             case _:
                 roll(string, 1)
-
-
 
 if __name__ == "__main__":
     app()
