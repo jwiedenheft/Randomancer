@@ -50,12 +50,17 @@ def parse_roll(roll_string: str):
     i = 0
     for word in words:
         result = word
-        if re.match('\[(.+?)\]', word):
-            dice_string = word[1:-1]
+        if re.search('\[(.+?)\]', word):
+            start = word.index('[')
+            end = word.index(']')
+            dice_string = word[start+1:end]
             result = str(parse_dice_string(dice_string))
             result = parse_roll(result)
-        elif re.match('{(.+?)}', word):
-            dice_string = word[1:-1]
+        elif re.search('{(.+?)}', word):
+            # Change logic around here to allow for punctuation after table refs
+            start = word.index('{')
+            end = word.index('}')
+            dice_string = word[start+1:end]
             result = parse_table_element(dice_string)
         words[i] = result
         i += 1
