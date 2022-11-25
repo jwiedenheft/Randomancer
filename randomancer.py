@@ -15,7 +15,7 @@ tables_directory = "tables"
 for filename in os.listdir(tables_directory):
     f = os.path.join(tables_directory, filename)
     if os.path.isfile(f) and filename.lower().endswith('.json'):
-        file = open(f)
+        file = open(f, encoding='UTF8')
         table = json.load(file)
         file.close()
         tables.update(table)
