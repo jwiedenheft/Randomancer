@@ -10,17 +10,21 @@ import re
 import random
 
 app = typer.Typer()
-tables = {}
-tables_directory = "tables"
-for filename in os.listdir(tables_directory):
-    f = os.path.join(tables_directory, filename)
-    if os.path.isfile(f) and filename.lower().endswith('.json'):
-        file = open(f, encoding='UTF8')
-        table = json.load(file)
-        file.close()
-        tables.update(table)
+
+def init_tables():
+    tables = {}
+    tables_directory = "tables"
+    for filename in os.listdir(tables_directory):
+        f = os.path.join(tables_directory, filename)
+        if os.path.isfile(f) and filename.lower().endswith('.json'):
+            file = open(f, encoding='UTF8')
+            table = json.load(file)
+            file.close()
+            tables.update(table)
+    return tables
 
 def get_table(table_name: str):
+    tables = init_tables()
     if table_name not in tables.keys():
         print(f"Could not find table '{table_name}'!")
         return table_name
@@ -111,6 +115,7 @@ def roll_dice(roll_string: str, iterations: int = typer.Argument(1)):
 
 @app.command()
 def list_tables():
+    tables = init_tables()
     for key in tables.keys():
         print(key)
 
