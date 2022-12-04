@@ -1,3 +1,5 @@
 tables/*
 *.txt
 __pycache__
+*.log
+secrets.json
