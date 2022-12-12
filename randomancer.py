@@ -40,7 +40,10 @@ def parse_table_element(table_string: str):
         choices = []
         match len(parts):
             case 3:
-                iterations = int(parse_roll(parts[2]))
+                parse_2 = parse_roll(parts[2])
+                if parse_2 == '':
+                    parse_2 = 1
+                iterations = int(parse_2)
                 for i in range(0,iterations):
                     num = parse_roll(parts[1])
                     if num in ['',0]:
@@ -49,7 +52,7 @@ def parse_table_element(table_string: str):
                         choices.append(options[int(num)])
             case 2:
                 num = int(parse_roll(parts[1]))
-                choices.append(options[num])
+                choices.append(options[num-1])
             case 1:
                 choices.append(random.choice(options))
         results = [parse_roll(choice) for choice in choices]
@@ -57,8 +60,34 @@ def parse_table_element(table_string: str):
         #print(f"-- Rolled '{result}'.")
     return result
 
+variables = {}
+
 def parse_roll(roll_string: str):
+    global variables
     #print("Roll string: " + roll_string)
+    variable_assign_patten = '<([A-Z_]+?)=(.+?)>'
+    match = re.search(variable_assign_patten, roll_string)
+    while match is not None:
+        key = parse_roll(match.group(1))
+        value = parse_roll(match.group(2))
+        variables[key] = value
+        before = roll_string[:match.start()]
+        after = roll_string[match.end():]
+        roll_string = before + "" + after
+        match = re.search(variable_assign_patten, roll_string)
+    
+    variable_fetch_pattern = '\$<(.+?)>'
+    match = re.search(variable_fetch_pattern, roll_string)
+    while match is not None:
+        key = match.group(1)
+        value = ""
+        if key in variables.keys():
+            value = variables[key]
+        before = roll_string[:match.start()]
+        after = roll_string[match.end():]
+        roll_string = before + value + after
+        match = re.search(variable_fetch_pattern, roll_string)
+    
     table_pattern = '{(.+?)}'
     match = re.search(table_pattern, roll_string)
     while match is not None:
@@ -117,6 +146,7 @@ def parse_dice_string(roll_string: str):
 def roll(roll_string: str, iterations: int = typer.Argument(1)):
     for i in range(0,iterations):
         result = parse_roll(roll_string)
+        result = result.replace(r'\n', '\n')
         print(result)
 
 @app.command()
