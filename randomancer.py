@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-
-from operator import indexOf
 import os
-from os import path
 import typer
 import json
 import re
@@ -40,35 +37,50 @@ def parse_table_element(table_string: str):
         parts = table_string.split("|")
         table = parts[0]
         options = get_table(table)
-        if len(parts) > 1:
-            num = int(parse_roll(parts[1]))
-            choice = options[num]
-        else:
-            choice = random.choice(options)
-        result = parse_roll(choice)
+        choices = []
+        match len(parts):
+            case 3:
+                iterations = int(parts[2])
+                for i in range(0,iterations):
+                    num = parse_roll(parts[1])
+                    if num in ['',0]:
+                        choices.append(random.choice(options))
+                    else:
+                        choices.append(options[int(num)])
+            case 2:
+                num = int(parse_roll(parts[1]))
+                choices.append(options[num])
+            case 1:
+                choices.append(random.choice(options))
+        results = [parse_roll(choice) for choice in choices]
+        result = "; ".join(results)
         #print(f"-- Rolled '{result}'.")
     return result
 
 def parse_roll(roll_string: str):
-    words = roll_string.split(" ")
-    i = 0
-    for word in words:
-        result = word
-        if re.search('\[(.+?)\]', word):
-            start = word.index('[')
-            end = word.index(']')
-            dice_string = word[start+1:end]
-            result = str(parse_dice_string(dice_string))
-            result = parse_roll(result)
-        elif re.search('{(.+?)}', word):
-            # Change logic around here to allow for punctuation after table refs
-            start = word.index('{')
-            end = word.index('}')
-            dice_string = word[start+1:end]
-            result = parse_table_element(dice_string)
-        words[i] = result
-        i += 1
-    return ' '.join(words)
+    #print("Roll string: " + roll_string)
+    table_pattern = '{(.+?)}'
+    match = re.search(table_pattern, roll_string)
+    while match is not None:
+        table = match.group(1)
+        result = parse_table_element(table)
+        before = roll_string[:match.start()]
+        after = roll_string[match.end():]
+        roll_string = before + result + after
+        #print("Roll string: " + roll_string)
+        match = re.search(table_pattern, roll_string)
+
+    dice_pattern = '\[(.+?)\]'
+    match = re.search(dice_pattern, roll_string)
+    while match is not None:
+        dice_string = match.group(1)
+        result = str(parse_dice_string(dice_string))
+        before = roll_string[:match.start()]
+        after = roll_string[match.end():]
+        roll_string = before + result + after
+        #print("Roll string: " + roll_string)
+        match = re.search(dice_pattern, roll_string)
+    return roll_string
 
 def parse_dice_string(roll_string: str):
     roll_string = roll_string.lower()
@@ -112,6 +124,7 @@ def roll_dice(roll_string: str, iterations: int = typer.Argument(1)):
     for i in range(0,iterations):
         total = parse_dice_string(roll_string)
         print(total)
+
 
 @app.command()
 def list_tables():
