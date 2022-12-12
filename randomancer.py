@@ -40,7 +40,7 @@ def parse_table_element(table_string: str):
         choices = []
         match len(parts):
             case 3:
-                iterations = int(parts[2])
+                iterations = int(parse_roll(parts[2]))
                 for i in range(0,iterations):
                     num = parse_roll(parts[1])
                     if num in ['',0]:
