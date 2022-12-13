@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-import typer
+import argparse
 import json
 import re
 import random
 
-app = typer.Typer()
 
 def init_tables():
     tables = {}
@@ -142,39 +141,45 @@ def parse_dice_string(roll_string: str):
     else:
         return int(roll_string)
 
-@app.command()
-def roll(roll_string: str, iterations: int = typer.Argument(1)):
+def roll_iterations(roll_string: str, iterations: int):
     for i in range(0,iterations):
         result = parse_roll(roll_string)
         result = result.replace(r'\n', '\n')
         print(result)
 
-@app.command()
-def roll_dice(roll_string: str, iterations: int = typer.Argument(1)):
+def roll(args):
+    roll_string: str = args['roll_string'][0]
+    result = parse_roll(roll_string)
+    result = result.replace(r'\n', '\n')
+    print(result)
+
+def roll_dice(roll_string: str, iterations: int):
     for i in range(0,iterations):
         total = parse_dice_string(roll_string)
         print(total)
 
 
-@app.command()
-def list_tables():
+def list_tables(args):
     tables = init_tables()
     for key in tables.keys():
         print(key)
 
-@app.command()
-def terminal():
-    exitFlag = False
-    while exitFlag is not True:
-        string = input("> ")
-        match string:
-            case "exit":
-                exitFlag = True
-            case "list":
-                list_tables()
-            case _:
-                roll(string, 1)
 
 if __name__ == "__main__":
-    app()
+    global_parser = argparse.ArgumentParser(prog="randomancer")
+    subparsers = global_parser.add_subparsers(
+        title="subcommands"
+    )
+    roll_parser = subparsers.add_parser("roll", help="generate a result based on the string provided")
+    roll_parser.add_argument(
+        "roll_string",
+        type=str,
+        nargs=1
+    )
+    roll_parser.set_defaults(func=roll)
 
+    list_tables_parser = subparsers.add_parser("list-tables", help="list all available random tables")
+    list_tables_parser.set_defaults(func=list_tables)
+
+    args = global_parser.parse_args()
+    args.func(vars(args))
