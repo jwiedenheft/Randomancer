@@ -28,35 +28,30 @@ def get_table(table_name: str):
 
 def parse_table_element(table_string: str):
     result = table_string
-    if table_string == "encounter_distance":
-        twoDsix = random.randint(1,6) + random.randint(1,6)
-        result = f"{twoDsix * 20} ft."
-    #print(f"Rolling on table '{table}'...")
-    else:
-        parts = table_string.split("|")
-        table = parts[0]
-        options = get_table(table)
-        choices = []
-        match len(parts):
-            case 3:
-                parse_2 = parse_roll(parts[2])
-                if parse_2 == '':
-                    parse_2 = 1
-                iterations = int(parse_2)
-                for i in range(0,iterations):
-                    num = parse_roll(parts[1])
-                    if num in ['',0]:
-                        choices.append(random.choice(options))
-                    else:
-                        choices.append(options[int(num)])
-            case 2:
-                num = int(parse_roll(parts[1]))
-                choices.append(options[num-1])
-            case 1:
-                choices.append(random.choice(options))
-        results = [parse_roll(choice) for choice in choices]
-        result = "; ".join(results)
-        #print(f"-- Rolled '{result}'.")
+    parts = table_string.split("|")
+    table_name = parts[0]
+    table = get_table(table_name)
+    choices = []
+    match len(parts):
+        case 3:
+            parse_2 = parse_roll(parts[2])
+            if parse_2 == '':
+                parse_2 = 1
+            iterations = int(parse_2)
+            for i in range(0,iterations):
+                num = parse_roll(parts[1])
+                if num in ['',0]:
+                    choices.append(random.choice(table))
+                else:
+                    choices.append(table[int(num)])
+        case 2:
+            num = int(parse_roll(parts[1]))
+            choices.append(table[num-1])
+        case 1:
+            choices.append(random.choice(table))
+    results = [parse_roll(choice) for choice in choices]
+    result = "; ".join(results)
+    #print(f"-- Rolled '{result}'.")
     return result
 
 variables = {}
